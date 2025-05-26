@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+import 'providers/calculator_provider.dart';
 import 'ui/calculator_screen.dart';
 
 void main() {
@@ -12,11 +12,8 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        // ChangeNotifierProvider(create: (_) => DisplayState()),
-        // Add other providers here if needed
-      ],
+    return ChangeNotifierProvider(
+      create: (_) => CalculatorProvider(),
       child: MaterialApp(
         title: 'Casio fx-991ES Plus',
         theme: ThemeData(primarySwatch: Colors.blue),

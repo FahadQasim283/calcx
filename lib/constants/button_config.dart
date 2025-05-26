@@ -8,7 +8,7 @@ class ButtonConfig {
   static List<List<CalculatorButton>> getButtonMatrix() {
     return [
       // Row 1
-      [
+     [
         CalculatorButton(
           text: 'SHIFT',
           color: CalculatorColors.specialKey,
