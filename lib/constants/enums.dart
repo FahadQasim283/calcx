@@ -8,3 +8,13 @@ enum ButtonType {
   trigonometric,
   special,
 }
+
+enum CalculatorMode {
+  normal,
+  complex,
+  matrix,
+  vector,
+  statistics,
+  table,
+  fraction,
+}

@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-
+import 'package:provider/provider.dart';
+import '../providers/calculator_provider.dart';
 import '../constants/button_config.dart';
-import '../constants/colors.dart';
-import '../logic/calculator_logic.dart';
 import '../models/button_model.dart';
-import '../models/display_state_model.dart';
+import 'dart:math' as math;
 
 class CasioCalculator extends StatefulWidget {
   const CasioCalculator({super.key});
@@ -14,14 +13,6 @@ class CasioCalculator extends StatefulWidget {
 }
 
 class _CasioCalculatorState extends State<CasioCalculator> {
-  DisplayState _displayState = DisplayState();
-
-  void _updateDisplay(DisplayState newState) {
-    setState(() {
-      _displayState = newState;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,16 +21,66 @@ class _CasioCalculatorState extends State<CasioCalculator> {
         child: Center(
           child: Container(
             decoration: BoxDecoration(
-              color: CalculatorColors.background,
+              color: const Color(0xFF2B2B2B),
               borderRadius: BorderRadius.circular(15),
               boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 5))],
             ),
             child: Column(
               children: [
+                // Top section with branding
                 _buildHeader(),
+                // Display
                 _buildDisplay(),
                 SizedBox(height: 8),
-                _buildButtonMatrix(),
+
+                // Button matrix
+                Expanded(
+                  child: Container(
+                    padding: EdgeInsets.all(8),
+                    child: Column(
+                      children: [
+                        // Fixed: Use Expanded to contain the button matrix
+                        Expanded(
+                          child: Consumer<CalculatorProvider>(
+                            builder: (context, provider, child) {
+                              final buttonMatrix = ButtonConfig.getButtonMatrix(
+                                shiftPressed: provider.shiftPressed,
+                                alphaPressed: provider.alphaPressed,
+                              );
+                              return Column(
+                                children: buttonMatrix
+                                    .map(
+                                      (row) => Expanded(
+                                        child: Row(
+                                          children: row
+                                              .map(
+                                                (button) => Expanded(
+                                                  child: Padding(
+                                                    padding: EdgeInsets.symmetric(
+                                                      horizontal: 2,
+                                                      vertical: 2,
+                                                    ),
+                                                    child: _buildCalculatorButton(button),
+                                                  ),
+                                                ),
+                                              )
+                                              .toList(),
+                                        ),
+                                      ),
+                                    )
+                                    .toList(),
+                              );
+                            },
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        _buildBottomRow(),
+                        SizedBox(height: 4),
+                        _buildLastRow(),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -78,102 +119,201 @@ class _CasioCalculatorState extends State<CasioCalculator> {
       margin: EdgeInsets.symmetric(horizontal: 8),
       height: 80,
       decoration: BoxDecoration(
-        color: CalculatorColors.displayBackground,
+        color: const Color(0xFF8BC34A),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Container(
         margin: EdgeInsets.all(2),
         decoration: BoxDecoration(
-          color: CalculatorColors.displayScreen,
+          color: const Color(0xFF1B1B1B),
           borderRadius: BorderRadius.circular(2),
         ),
-        child: Column(children: [_buildStatusIndicators(), _buildMainDisplay()]),
-      ),
-    );
-  }
-
-  Widget _buildStatusIndicators() {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text('S-V.P.A.M.', style: TextStyle(color: Colors.white, fontSize: 8)),
-          Row(
-            children: [
-              if (_displayState.showMemory)
-                Text('M', style: TextStyle(color: Colors.white, fontSize: 8)),
-              SizedBox(width: 8),
-              if (_displayState.showSto)
-                Text('STO', style: TextStyle(color: Colors.white, fontSize: 8)),
-              SizedBox(width: 8),
-              if (_displayState.showRcl)
-                Text('RCL', style: TextStyle(color: Colors.white, fontSize: 8)),
-              SizedBox(width: 8),
-              if (_displayState.showStat)
-                Text('STAT', style: TextStyle(color: Colors.white, fontSize: 8)),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMainDisplay() {
-    return Expanded(
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        alignment: Alignment.centerRight,
-        child: Text(
-          _displayState.mainDisplay,
-          style: TextStyle(color: Colors.white, fontSize: 24, fontFamily: 'monospace'),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildButtonMatrix() {
-    return Expanded(
-      child: Container(
-        padding: EdgeInsets.all(8),
         child: Column(
           children: [
-            // Regular button rows
-            ...ButtonConfig.getButtonMatrix().map(
-              (row) => Column(children: [_buildButtonRow(row), SizedBox(height: 4)]),
+            // Status indicators
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              child: Consumer<CalculatorProvider>(
+                builder: (context, provider, child) {
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Text('S-V.P.A.M.', style: TextStyle(color: Colors.white, fontSize: 8)),
+                          SizedBox(width: 8),
+                          Text(
+                            provider.isRadianMode ? 'RAD' : 'DEG',
+                            style: TextStyle(color: Colors.white, fontSize: 8),
+                          ),
+                          SizedBox(width: 8),
+                          _buildStatusIndicator('SHIFT', provider.shiftPressed),
+                          SizedBox(width: 4),
+                          _buildStatusIndicator('ALPHA', provider.alphaPressed),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          _buildStatusIndicator('M', provider.displayState.showMemory),
+                          SizedBox(width: 8),
+                          _buildStatusIndicator('STO', provider.displayState.showSto),
+                          SizedBox(width: 8),
+                          _buildStatusIndicator('RCL', provider.displayState.showRcl),
+                          SizedBox(width: 8),
+                          _buildStatusIndicator('STAT', provider.displayState.showStat),
+                        ],
+                      ),
+                    ],
+                  );
+                },
+              ),
             ),
-            // Special bottom rows
-            _buildSpecialButtonRow(ButtonConfig.getBottomRowButtons()),
-            SizedBox(height: 4),
-            _buildSpecialButtonRow(ButtonConfig.getLastRowButtons()),
+            // Main display area with cursor
+            Expanded(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                alignment: Alignment.centerRight,
+                child: Consumer<CalculatorProvider>(
+                  builder: (context, provider, child) {
+                    return GestureDetector(
+                      onTapDown: (TapDownDetails details) {
+                        // Calculate cursor position based on tap
+                        _handleDisplayTap(details, provider);
+                      },
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        reverse: true,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: _buildDisplayWithCursor(
+                            provider.displayState.mainDisplay,
+                            provider.cursorPosition,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildButtonRow(List<CalculatorButton> buttons) {
-    return Row(
-      children: buttons.map((button) {
-        return Expanded(
-          child: Padding(padding: EdgeInsets.symmetric(horizontal: 2), child: _buildButton(button)),
-        );
-      }).toList(),
+  // Build display text with cursor
+  List<Widget> _buildDisplayWithCursor(String text, int cursorPosition) {
+    List<Widget> widgets = [];
+
+    if (text.isEmpty) {
+      widgets.add(
+        Text(
+          '0',
+          style: TextStyle(color: Colors.white, fontSize: 18, fontFamily: 'monospace'),
+        ),
+      );
+      widgets.add(_buildCursor());
+      return widgets;
+    }
+
+    // Split text at cursor position
+    String beforeCursor = text.substring(0, math.min(cursorPosition, text.length));
+    String afterCursor = text.substring(math.min(cursorPosition, text.length));
+
+    if (beforeCursor.isNotEmpty) {
+      widgets.add(
+        Text(
+          beforeCursor,
+          style: TextStyle(color: Colors.white, fontSize: 18, fontFamily: 'monospace'),
+        ),
+      );
+    }
+
+    // Add cursor
+    widgets.add(_buildCursor());
+
+    if (afterCursor.isNotEmpty) {
+      widgets.add(
+        Text(
+          afterCursor,
+          style: TextStyle(color: Colors.white, fontSize: 18, fontFamily: 'monospace'),
+        ),
+      );
+    }
+
+    return widgets;
+  }
+
+  Widget _buildCursor() {
+    return Container(
+      width: 1,
+      height: 20,
+      color: Colors.white,
+      margin: EdgeInsets.symmetric(horizontal: 1),
     );
   }
 
-  Widget _buildSpecialButtonRow(List<CalculatorButton> buttons) {
-    return Row(
-      children: buttons.map((button) {
-        return Expanded(
-          flex: button.flex!,
-          child: Padding(padding: EdgeInsets.symmetric(horizontal: 2), child: _buildButton(button)),
-        );
-      }).toList(),
+  void _handleDisplayTap(TapDownDetails details, CalculatorProvider provider) {
+    // Calculate approximate cursor position based on tap location
+    RenderBox renderBox = context.findRenderObject() as RenderBox;
+    double tapX = details.localPosition.dx;
+
+    // Rough estimation - you might want to make this more precise
+    String text = provider.displayState.mainDisplay;
+    double charWidth = 10.8; // Approximate character width for monospace font
+    int position = (tapX / charWidth).round();
+    position = math.max(0, math.min(position, text.length));
+
+    provider.setCursorPosition(position);
+  }
+
+  Widget _buildStatusIndicator(String text, bool isVisible) {
+    return Text(
+      text,
+      style: TextStyle(color: isVisible ? Colors.white : Colors.transparent, fontSize: 8),
     );
   }
 
-  Widget _buildButton(CalculatorButton button) {
+  Widget _buildBottomRow() {
+    return Consumer<CalculatorProvider>(
+      builder: (context, provider, child) {
+        final buttons = ButtonConfig.getBottomRowButtons();
+        return Row(
+          children: buttons.map((button) {
+            return Expanded(
+              flex: button.flex ?? 1,
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 2),
+                child: _buildCalculatorButton(button),
+              ),
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+
+  Widget _buildLastRow() {
+    return Consumer<CalculatorProvider>(
+      builder: (context, provider, child) {
+        final buttons = ButtonConfig.getLastRowButtons();
+        return Row(
+          children: buttons.map((button) {
+            return Expanded(
+              flex: button.flex ?? 1,
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 2),
+                child: _buildCalculatorButton(button),
+              ),
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+
+  Widget _buildCalculatorButton(CalculatorButton button) {
     return Container(
       height: 35,
       decoration: BoxDecoration(
@@ -186,14 +326,15 @@ class _CasioCalculatorState extends State<CasioCalculator> {
         child: InkWell(
           borderRadius: BorderRadius.circular(4),
           onTap: () {
-            CalculatorLogic.handleButtonPress(button.text, button.type, _updateDisplay);
+            final provider = Provider.of<CalculatorProvider>(context, listen: false);
+            provider.handleButtonPress(button.text, button.type);
           },
           child: Center(
             child: Text(
               button.text,
               style: TextStyle(
                 color: button.textColor,
-                fontSize: button.text.length > 3 ? 10 : 12,
+                fontSize: button.text.length > 3 ? 9 : 11,
                 fontWeight: FontWeight.w500,
               ),
             ),
