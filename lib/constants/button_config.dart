@@ -1,23 +1,27 @@
-import 'package:flutter/material.dart' show Colors;
-
+import 'package:flutter/material.dart' show Colors, BuildContext, Widget;
+import 'package:provider/provider.dart';
 import '../models/button_model.dart';
 import 'colors.dart';
 import 'enums.dart';
+import '../providers/calculator_provider.dart';
 
 class ButtonConfig {
-  static List<List<CalculatorButton>> getButtonMatrix() {
+  static List<List<CalculatorButton>> getButtonMatrix({
+    bool shiftPressed = false,
+    bool alphaPressed = false,
+  }) {
     return [
       // Row 1
-     [
+      [
         CalculatorButton(
           text: 'SHIFT',
-          color: CalculatorColors.specialKey,
+          color: shiftPressed ? CalculatorColors.activeKey : CalculatorColors.specialKey,
           textColor: Colors.white,
           type: ButtonType.control,
         ),
         CalculatorButton(
           text: 'ALPHA',
-          color: CalculatorColors.specialKey,
+          color: alphaPressed ? CalculatorColors.activeKey : CalculatorColors.specialKey,
           textColor: Colors.white,
           type: ButtonType.control,
         ),
@@ -43,31 +47,31 @@ class ButtonConfig {
       // Row 2
       [
         CalculatorButton(
-          text: 'x⁻¹',
+          text: shiftPressed ? 'x!' : 'x⁻¹',
           color: CalculatorColors.functionKey,
           textColor: Colors.white,
           type: ButtonType.function,
         ),
         CalculatorButton(
-          text: 'nCr',
+          text: shiftPressed ? 'nPr' : 'nCr',
           color: CalculatorColors.functionKey,
           textColor: Colors.white,
           type: ButtonType.function,
         ),
         CalculatorButton(
-          text: 'Pol(',
+          text: shiftPressed ? 'Rec(' : 'Pol(',
           color: CalculatorColors.functionKey,
           textColor: Colors.white,
           type: ButtonType.function,
         ),
         CalculatorButton(
-          text: 'x³',
+          text: shiftPressed ? '∛' : 'x³',
           color: CalculatorColors.functionKey,
           textColor: Colors.white,
           type: ButtonType.function,
         ),
         CalculatorButton(
-          text: 'S⇔D',
+          text: shiftPressed ? 'RanInt#' : 'S⇔D',
           color: CalculatorColors.functionKey,
           textColor: Colors.white,
           type: ButtonType.function,
@@ -94,13 +98,13 @@ class ButtonConfig {
           type: ButtonType.operator,
         ),
         CalculatorButton(
-          text: 'log',
+          text: shiftPressed ? '10ˣ' : 'log',
           color: CalculatorColors.functionKey,
           textColor: Colors.white,
           type: ButtonType.function,
         ),
         CalculatorButton(
-          text: 'ln',
+          text: shiftPressed ? 'eˣ' : 'ln',
           color: CalculatorColors.functionKey,
           textColor: Colors.white,
           type: ButtonType.function,
@@ -121,19 +125,19 @@ class ButtonConfig {
           type: ButtonType.function,
         ),
         CalculatorButton(
-          text: 'hyp',
+          text: shiftPressed ? 'hyp⁻¹' : 'hyp',
           color: CalculatorColors.functionKey,
           textColor: Colors.white,
           type: ButtonType.function,
         ),
         CalculatorButton(
-          text: 'sin',
+          text: shiftPressed ? 'sin⁻¹' : 'sin',
           color: CalculatorColors.functionKey,
           textColor: Colors.white,
           type: ButtonType.trigonometric,
         ),
         CalculatorButton(
-          text: 'cos',
+          text: shiftPressed ? 'cos⁻¹' : 'cos',
           color: CalculatorColors.functionKey,
           textColor: Colors.white,
           type: ButtonType.trigonometric,
@@ -154,19 +158,19 @@ class ButtonConfig {
           type: ButtonType.function,
         ),
         CalculatorButton(
-          text: '(',
+          text: shiftPressed ? 'π' : '(',
           color: CalculatorColors.functionKey,
           textColor: Colors.white,
-          type: ButtonType.operator,
+          type: shiftPressed ? ButtonType.special : ButtonType.operator,
         ),
         CalculatorButton(
-          text: ')',
+          text: shiftPressed ? 'e' : ')',
           color: CalculatorColors.functionKey,
           textColor: Colors.white,
-          type: ButtonType.operator,
+          type: shiftPressed ? ButtonType.special : ButtonType.operator,
         ),
         CalculatorButton(
-          text: 'tan',
+          text: shiftPressed ? 'tan⁻¹' : 'tan',
           color: CalculatorColors.functionKey,
           textColor: Colors.white,
           type: ButtonType.trigonometric,
@@ -187,22 +191,22 @@ class ButtonConfig {
           type: ButtonType.memory,
         ),
         CalculatorButton(
-          text: '7',
+          text: alphaPressed ? 'X' : '7',
           color: CalculatorColors.numberKey,
           textColor: Colors.white,
-          type: ButtonType.number,
+          type: alphaPressed ? ButtonType.special : ButtonType.number,
         ),
         CalculatorButton(
-          text: '8',
+          text: alphaPressed ? 'Y' : '8',
           color: CalculatorColors.numberKey,
           textColor: Colors.white,
-          type: ButtonType.number,
+          type: alphaPressed ? ButtonType.special : ButtonType.number,
         ),
         CalculatorButton(
-          text: '9',
+          text: alphaPressed ? 'Z' : '9',
           color: CalculatorColors.numberKey,
           textColor: Colors.white,
-          type: ButtonType.number,
+          type: alphaPressed ? ButtonType.special : ButtonType.number,
         ),
       ],
       // Row 7
@@ -220,22 +224,22 @@ class ButtonConfig {
           type: ButtonType.function,
         ),
         CalculatorButton(
-          text: '4',
+          text: alphaPressed ? 'M' : '4',
           color: CalculatorColors.numberKey,
           textColor: Colors.white,
-          type: ButtonType.number,
+          type: alphaPressed ? ButtonType.special : ButtonType.number,
         ),
         CalculatorButton(
-          text: '5',
+          text: alphaPressed ? 'N' : '5',
           color: CalculatorColors.numberKey,
           textColor: Colors.white,
-          type: ButtonType.number,
+          type: alphaPressed ? ButtonType.special : ButtonType.number,
         ),
         CalculatorButton(
-          text: '6',
+          text: alphaPressed ? 'P' : '6',
           color: CalculatorColors.numberKey,
           textColor: Colors.white,
-          type: ButtonType.number,
+          type: alphaPressed ? ButtonType.special : ButtonType.number,
         ),
       ],
       // Row 8
@@ -253,22 +257,22 @@ class ButtonConfig {
           type: ButtonType.function,
         ),
         CalculatorButton(
-          text: '1',
+          text: alphaPressed ? 'A' : '1',
           color: CalculatorColors.numberKey,
           textColor: Colors.white,
-          type: ButtonType.number,
+          type: alphaPressed ? ButtonType.special : ButtonType.number,
         ),
         CalculatorButton(
-          text: '2',
+          text: alphaPressed ? 'B' : '2',
           color: CalculatorColors.numberKey,
           textColor: Colors.white,
-          type: ButtonType.number,
+          type: alphaPressed ? ButtonType.special : ButtonType.number,
         ),
         CalculatorButton(
-          text: '3',
+          text: alphaPressed ? 'C' : '3',
           color: CalculatorColors.numberKey,
           textColor: Colors.white,
-          type: ButtonType.number,
+          type: alphaPressed ? ButtonType.special : ButtonType.number,
         ),
       ],
       // Row 9
@@ -310,29 +314,32 @@ class ButtonConfig {
   static List<CalculatorButton> getBottomRowButtons() {
     return [
       CalculatorButton(
-        text: 'DEL',
-        color: CalculatorColors.numberKey,
-        textColor: Colors.white,
-        type: ButtonType.control,
-        flex: 2,
-      ),
-      CalculatorButton(
         text: '÷',
-        color: CalculatorColors.functionKey,
+        color: CalculatorColors.operatorKey,
         textColor: Colors.white,
         type: ButtonType.operator,
+        flex: 1,
       ),
       CalculatorButton(
         text: '×',
-        color: CalculatorColors.functionKey,
+        color: CalculatorColors.operatorKey,
         textColor: Colors.white,
         type: ButtonType.operator,
+        flex: 1,
       ),
       CalculatorButton(
         text: '-',
-        color: CalculatorColors.functionKey,
+        color: CalculatorColors.operatorKey,
         textColor: Colors.white,
         type: ButtonType.operator,
+        flex: 1,
+      ),
+      CalculatorButton(
+        text: '+',
+        color: CalculatorColors.operatorKey,
+        textColor: Colors.white,
+        type: ButtonType.operator,
+        flex: 1,
       ),
     ];
   }
@@ -341,16 +348,17 @@ class ButtonConfig {
     return [
       CalculatorButton(
         text: 'AC',
-        color: CalculatorColors.acKey,
+        color: CalculatorColors.clearKey,
         textColor: Colors.white,
         type: ButtonType.control,
-        flex: 2,
+        flex: 1,
       ),
       CalculatorButton(
-        text: '+',
-        color: CalculatorColors.functionKey,
+        text: 'DEL',
+        color: CalculatorColors.clearKey,
         textColor: Colors.white,
-        type: ButtonType.operator,
+        type: ButtonType.control,
+        flex: 1,
       ),
       CalculatorButton(
         text: '=',
