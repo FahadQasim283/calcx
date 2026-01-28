@@ -1,4 +1,3 @@
-// Color constants
 import 'package:flutter/material.dart' show Color;
 
 class CalculatorColors {
